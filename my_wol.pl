@@ -3,6 +3,7 @@
 :- use_module(library(ordsets)).
 :- use_module(library(random)).
 
+
 % test_strategy/3
 
 test_strategy(N, Strat1, Strat2) :-
@@ -60,3 +61,28 @@ test_strategy(NTot, N, Strat1, Strat2, TotTime, TotMoves,
   N2 is N + 1,   %increment counter
   test_strategy(NTot,N2,Strat1,Strat2,TotTime2,TotMoves2,
                 BWins2,RWins2,NumDraws2,MostMoves2,LeastMoves2). %tail recurse
+
+
+% bloodlust/4
+
+
+% count_after_move/4
+% gives the number of each colour of tile left on board
+% after move given as [R,C,NewR,NewC]
+count_after_move(Move, Colour, [Blues, Reds],
+                 NewBoard, NumberOfBlue, NumberOfRed) :-
+  (
+    Colour = b,
+    alter_board(Move,Blues,NewBlues),
+    next_generation([NewBlues,Reds],[FinalBlues,FinalReds])
+    ;
+    Colour = r,
+    alter_board(Move,Reds,NewReds),
+    next_generation([Blues,NewReds],[FinalBlues,FinalReds])
+  ),
+  NewBoard = [FinalBlues,FinalReds],
+  length(FinalBlues,NumberOfBlue),
+  length(FinalReds,NumberOfRed).
+
+
+
