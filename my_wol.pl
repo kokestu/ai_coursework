@@ -12,15 +12,15 @@ test_strategy(N, Strat1, Strat2) :-
 
 test_strategy(NTot, NTot, _, _, TotTime, TotMoves,          %if we've finished
               BWins, RWins, NumDraws, MostMoves, LeastMoves) :-
-  AvgMoves is div(TotMoves, NTot),
-  AvgTime is div(TotTime, NTot),
+  AvgMoves is TotMoves/NTot,
+  AvgTime is TotTime/NTot,
   format('number of draws = ~d~n', [NumDraws]), 
   format('player 1 (b) wins = ~d~n', [BWins]), 
   format('player 2 (r) wins = ~d~n', [RWins]), 
   format('longest game = ~d~n', [MostMoves]), 
   format('shortest game = ~d~n', [LeastMoves]), 
   format('average moves = ~d~n', [AvgMoves]), 
-  format('average time = ~d~n', [AvgTime]). 
+  format('average time = ~3d seconds~n', [AvgTime]). 
 
 test_strategy(NTot, N, Strat1, Strat2, TotTime, TotMoves, 
               BWins, RWins, NumDraws, MostMoves, LeastMoves) :-
@@ -56,7 +56,7 @@ test_strategy(NTot, N, Strat1, Strat2, TotTime, TotMoves,
     ;
     MostMoves2 is MostMoves,
     LeastMoves2 is LeastMoves %otherwise
-  )
+  ),
   N2 is N + 1,   %increment counter
   test_strategy(NTot,N2,Strat1,Strat2,TotTime2,TotMoves2,
                 BWins2,RWins2,NumDraws2,MostMoves2,LeastMoves2). %tail recurse
