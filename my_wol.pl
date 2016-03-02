@@ -64,11 +64,49 @@ test_strategy(NTot, N, Strat1, Strat2, TotTime, TotMoves,
 
 
 % bloodlust/4
+bloodlust(Colour,CurrentBoard,NewBoard,Move) :-
+  colour_to_string(Colour,ColourStr),
+  findall([R,C,NewR,NewC],
+      (
+        cell(R,C),
+        cell(NewR,NewC),
+        what_in_cell(CurrentBoard,R,C,ColourStr),
+        what_in_cell(CurrentBoard,NewR,NewC,' ')
+      ), Moves),
+  bloodlust(Colour, CurrentBoard, Moves, [(100,[])], NewBoard, Move).
+
+
+%helper : bloodlust/8
+bloodlust(_, _, [], [(_,Move,NewBoard)|_], NewBoard, Move).
+
+bloodlust(Colour, CurrentBoard, [M|Ms], BestMoves, NewBoard, Move) :-
+  count_after_move(M,Colour,CurrentBoard,NewBoard2,Blues,Reds),
+  [(BestNo,_)|_] = BestMoves,
+  (
+    Colour = b,
+    Reds < BestNo,
+    Best2 is Reds,
+    BestMove2 = M
+    ;
+    Colour = r,
+    Blues < BestNo,
+    Best2 is Blues,
+    BestMove2 = M
+  ),
+  bloodlust(b, CurrentBoard, Ms, [(Best2,BestMove2,NewBoard2)|BestMoves],NewBoard,Move).
+
+bloodlust(Colour, CurrentBoard, [_|Ms], BestMoves, NewBoard, Move) :-
+  bloodlust(Colour, CurrentBoard, Ms, BestMoves, NewBoard, Move).
+
+%colour_to_string/2
+colour_to_string(b,'b').
+colour_to_string(r,'r').
 
 
 % count_after_move/4
 % gives the number of each colour of tile left on board
 % after move given as [R,C,NewR,NewC]
+
 count_after_move(Move, Colour, [Blues, Reds],
                  NewBoard, NumberOfBlue, NumberOfRed) :-
   (
