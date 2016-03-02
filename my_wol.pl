@@ -40,13 +40,13 @@ test_strategy(NTot, N, Strat1, Strat2, TotTime, TotMoves,
     BWins2 is BWins + 1,
     RWins2 is RWins     %if blue wins
     ;
-    Winner == draw,
     NumDraws2 is NumDraws + 1,
     BWins2 is BWins,
     RWins2 is RWins     %if game is a draw
   ),
   (
     Moves > MostMoves,
+    Moves =\= 250,
     MostMoves2 is Moves,
     LeastMoves2 is LeastMoves %if new longest game
     ;
