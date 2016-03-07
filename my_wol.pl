@@ -151,13 +151,13 @@ minimax_util(M, r, CurrentBoard, NewVal, NewBoard) :-
   NewVal is Reds + 64.
 minimax_util(M, b, CurrentBoard, NewVal, NewBoard) :-
   make_move(b, M, CurrentBoard, NewBoard),
-  land_grab(r, NewBoard, [FutureBlues, FutureReds], _),
+  land_grab(r, NewBoard, [FutureBlues, FutureReds], _), !,
   length(FutureReds, Reds),
   length(FutureBlues, Blues),
   NewVal is Blues - Reds + 64.
 minimax_util(M, r, CurrentBoard, NewVal, NewBoard) :-
   make_move(r, M, CurrentBoard, NewBoard),
-  land_grab(b, NewBoard, [FutureBlues, FutureReds], _),
+  land_grab(b, NewBoard, [FutureBlues, FutureReds], _), !,
   length(FutureReds, Reds),
   length(FutureBlues, Blues),
   NewVal is Reds - Blues + 64.
