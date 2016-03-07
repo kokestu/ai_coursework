@@ -63,44 +63,103 @@ test_strategy(NTot, N, Strat1, Strat2, TotTime, TotMoves,
                 BWins2,RWins2,NumDraws2,MostMoves2,LeastMoves2). %tail recurse
 
 
-% bloodlust/4
-bloodlust(Colour,CurrentBoard,NewBoard,Move) :-
+
+%template/5
+template(Func,Colour,CurrentBoard,NewBoard,Move) :-
   colour_to_string(Colour,ColourStr),
   findall([R,C,NewR,NewC],
       (
         cell(R,C),
         cell(NewR,NewC),
+        neighbour_position(R,C,[NewR,NewC]),
         what_in_cell(CurrentBoard,R,C,ColourStr),
         what_in_cell(CurrentBoard,NewR,NewC,' ')
       ), Moves),
-  bloodlust(Colour, CurrentBoard, Moves, [(100,[])], NewBoard, Move).
+  template(Func, Colour, CurrentBoard, Moves, (0,[],[]), NewBoard, Move).
+ 
+%helper : template/7
+template(_, _, _, [], (_,Move,NewBoard), NewBoard, Move).
+
+template(Func, Colour, CurrentBoard, [M|Ms], (BestNo,_,_), NewBoard, Move) :-
+  Goal =.. [Func, M, Colour, CurrentBoard, NewVal, NewBoard2],
+  call(Goal),
+  BestNo < NewVal,
+  template(Func, b, CurrentBoard, Ms, (NewVal,M,NewBoard2), NewBoard, Move).
+
+template(Func, Colour, CurrentBoard, [_|Ms], BestMove, NewBoard, Move) :-
+  template(Func, Colour, CurrentBoard, Ms, BestMove, NewBoard, Move).
 
 
-%helper : bloodlust/8
-bloodlust(_, _, [], [(_,Move,NewBoard)|_], NewBoard, Move).
 
-bloodlust(Colour, CurrentBoard, [M|Ms], BestMoves, NewBoard, Move) :-
-  count_after_move(M,Colour,CurrentBoard,NewBoard2,Blues,Reds),
-  [(BestNo,_)|_] = BestMoves,
+%bloodlust/4
+bloodlust(Colour,CurrentBoard,NewBoard,Move) :-
+  template(bloodlust_util, Colour, CurrentBoard, NewBoard, Move).
+
+%bloodlust_util/5
+bloodlust_util(M, Colour, CurrentBoard, NewVal, NewBoard) :-
+  count_after_move(M,Colour,CurrentBoard,NewBoard,Blues,Reds),
   (
     Colour = b,
-    Reds < BestNo,
-    Best2 is Reds,
-    BestMove2 = M
+    NewVal is 64 - Reds
     ;
     Colour = r,
-    Blues < BestNo,
-    Best2 is Blues,
-    BestMove2 = M
-  ),
-  bloodlust(b, CurrentBoard, Ms, [(Best2,BestMove2,NewBoard2)|BestMoves],NewBoard,Move).
+    NewVal is 64 - Blues
+  ).
 
-bloodlust(Colour, CurrentBoard, [_|Ms], BestMoves, NewBoard, Move) :-
-  bloodlust(Colour, CurrentBoard, Ms, BestMoves, NewBoard, Move).
+
+%self_preservation/4
+self_preservation(Colour,CurrentBoard,NewBoard,Move) :-
+  template(self_preservation_util, Colour, CurrentBoard, NewBoard, Move).
+
+%self_preservation_util/5
+self_preservation_util(M, Colour, CurrentBoard, NewVal, NewBoard) :-
+  count_after_move(M,Colour,CurrentBoard,NewBoard,Blues,Reds),
+  (
+    Colour = b,
+    NewVal is Blues
+    ;
+    Colour = r,
+    NewVal is Reds
+  ).
+
+
+%land_grab/4
+land_grab(Colour,CurrentBoard,NewBoard,Move) :-
+  template(land_grab_util, Colour, CurrentBoard, NewBoard, Move).
+
+%land_grab_util/5
+land_grab_util(M, Colour, CurrentBoard, NewVal, NewBoard) :-
+  count_after_move(M,Colour,CurrentBoard,NewBoard,Blues,Reds),
+  (
+    Colour = b,
+    NewVal is Blues - Reds + 64
+    ;
+    Colour = r,
+    NewVal is Reds - Blues + 64
+  ).
+
+%%minimax/4
+%minimax(Colour,CurrentBoard,NewBoard,Move) :-
+%  template(minimax_util, Colour, CurrentBoard, NewBoard, Move).
+%
+%%minimax_util/5
+%minimax_util(M, Colour, CurrentBoard, NewVal, NewBoard) :-
+%  (
+%    Colour = b,
+%    Other = r
+%    ;
+%    Colour = r,
+%    Other = b
+%  ),
+%  count_after_move(M,Colour,CurrentBoard,NewBoard,Blues,Reds).
 
 %colour_to_string/2
 colour_to_string(b,'b').
 colour_to_string(r,'r').
+
+%other_colour/1
+other_colour(b, r).
+other_colour(r, b).
 
 
 % count_after_move/4
