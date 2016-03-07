@@ -138,20 +138,30 @@ land_grab_util(M, Colour, CurrentBoard, NewVal, NewBoard) :-
     NewVal is Reds - Blues + 64
   ).
 
-%%minimax/4
-%minimax(Colour,CurrentBoard,NewBoard,Move) :-
-%  template(minimax_util, Colour, CurrentBoard, NewBoard, Move).
-%
-%%minimax_util/5
-%minimax_util(M, Colour, CurrentBoard, NewVal, NewBoard) :-
-%  (
-%    Colour = b,
-%    Other = r
-%    ;
-%    Colour = r,
-%    Other = b
-%  ),
-%  count_after_move(M,Colour,CurrentBoard,NewBoard,Blues,Reds).
+%minimax/4
+minimax(Colour,CurrentBoard,NewBoard,Move) :-
+  template(minimax_util, Colour, CurrentBoard, NewBoard, Move).
+
+%minimax_util/5
+minimax_util(M, b, CurrentBoard, NewVal, NewBoard) :-
+  count_after_move(M, r, CurrentBoard, NewBoard, Blues, 0),
+  NewVal is Blues + 64.
+minimax_util(M, r, CurrentBoard, NewVal, NewBoard) :-
+  count_after_move(M, r, CurrentBoard, NewBoard, 0, Reds),
+  NewVal is Reds + 64.
+minimax_util(M, b, CurrentBoard, NewVal, NewBoard) :-
+  make_move(b, M, CurrentBoard, NewBoard),
+  land_grab(r, NewBoard, [FutureBlues, FutureReds], _),
+  length(FutureReds, Reds),
+  length(FutureBlues, Blues),
+  NewVal is Blues - Reds + 64.
+minimax_util(M, r, CurrentBoard, NewVal, NewBoard) :-
+  make_move(r, M, CurrentBoard, NewBoard),
+  land_grab(b, NewBoard, [FutureBlues, FutureReds], _),
+  length(FutureReds, Reds),
+  length(FutureBlues, Blues),
+  NewVal is Reds - Blues + 64.
+  
 
 %colour_to_string/2
 colour_to_string(b,'b').
@@ -161,22 +171,20 @@ colour_to_string(r,'r').
 other_colour(b, r).
 other_colour(r, b).
 
+% make_move/4
+make_move(b, Move, [Blues, Reds], NewBoard) :-
+  alter_board(Move, Blues, NewBlues),
+  next_generation([NewBlues, Reds], NewBoard).
+make_move(r, Move, [Blues, Reds], NewBoard) :-
+  alter_board(Move, Reds, NewReds),
+  next_generation([Blues, NewReds], NewBoard).
 
 % count_after_move/4
 % gives the number of each colour of tile left on board
 % after move given as [R,C,NewR,NewC]
-
-count_after_move(Move, Colour, [Blues, Reds],
+count_after_move(Move, Colour, OldBoard,
                  NewBoard, NumberOfBlue, NumberOfRed) :-
-  (
-    Colour = b,
-    alter_board(Move,Blues,NewBlues),
-    next_generation([NewBlues,Reds],[FinalBlues,FinalReds])
-    ;
-    Colour = r,
-    alter_board(Move,Reds,NewReds),
-    next_generation([Blues,NewReds],[FinalBlues,FinalReds])
-  ),
+  make_move(Colour, Move, OldBoard, NewBoard),
   NewBoard = [FinalBlues,FinalReds],
   length(FinalBlues,NumberOfBlue),
   length(FinalReds,NumberOfRed).
